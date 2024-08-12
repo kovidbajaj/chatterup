@@ -1,0 +1,149 @@
+#app{
+    display: flex;
+}
+
+#chat-container{
+    height:98vh;
+    width:75vw;
+    margin-right: 20px;
+}
+
+#notification-panel{
+    height:9%;
+    background-color:skyblue;
+    display: flex;
+}
+
+#chat-list{
+    height:83%;
+    background-image: url('./public/image.jpg');
+    overflow: auto;
+}
+
+#footer{
+    height:8%;
+    background-color:whitesmoke;
+}
+
+#message-input{
+    border: 3px solid black;
+    width:70%;
+    height: 90%;
+    background-color: lightgrey;
+    font-size: large;
+    border-radius: 6px;
+}
+
+#send-message{
+    background-color: lightgreen;
+    height:100%;
+    width:20%;
+    margin-left: 8px;
+    border: 3px solid black ; 
+    border-radius: 6px; 
+    font-size: large;
+}
+
+#connected-users-container{
+    height: 55vh;
+    width: 20vw;
+    position: relative;
+    top:200px;
+    overflow: auto;
+}
+
+#connected-users{
+    width:100%;
+    height:15%;
+    color:white;
+    background-color: royalblue;
+    text-align: center;
+    font-size:x-large;
+    padding: 10px 0px 10px 0px;
+    box-sizing: border-box;
+    font-family: sans-serif;
+    
+}
+
+#online-symbol{
+    height:20px;
+    width:20px;
+    background-color: green;
+    border-radius: 100%;
+    margin: 8px 8px 8px 15px;
+    position: relative;
+    top:15px;
+}
+
+#greeting-notification{
+    color:black;
+    font-size: x-large;
+    position: relative;
+    top:18px;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+#status{
+    display: flex;
+}
+
+.user{
+    width:100%;
+    height:15%;
+    color:black;
+    background-color: lightgreen;
+    text-align: center; 
+    font-size:x-large;
+    padding: 10px 0px 10px 0px;
+    box-sizing: border-box;
+    font-family: sans-serif;
+    border: 2px solid black; 
+    border-radius: 4px;
+}
+
+#user-typing{
+    position: relative;
+    left:70px;
+    top:35px;
+    font-size:medium;
+    font-style:italic;
+}
+
+.name-time-div{
+    display: flex;
+    justify-content: space-between;
+}
+
+.message-box{
+    width:65%;
+    background-color: burlywood;
+    margin-top: 15px;
+    margin-bottom: 15px; 
+}
+
+.name-div{
+    font-size: xx-large;
+    font-family: sans-serif;
+}
+
+.time-div{
+    font-size: xx-large;
+    font-family: sans-serif;
+}
+
+.message-div{
+    font-size: xx-large;
+    font-family: sans-serif;
+}
+
+#message-box{
+    width:65%;
+    background-color: aquamarine;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+#layer1{
+    display: flex;
+    justify-content: flex-end;
+}

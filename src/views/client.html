@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatter up</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <div id="app">
+
+    <div id="chat-container">
+        <div id="notification-panel">
+            <!-- Added Dynamically -->
+        </div>
+
+        <div id="chat-list">
+            <!-- Added Dynamically -->
+        </div>
+        <div id="footer">
+            <input type="text" id="message-input" placeholder="Enter your message...">
+            <button id="send-message">Send</button>
+        </div>
+    </div>
+
+    <div id="connected-users-container">
+        <div id="connected-users">
+             Connected Users
+        </div>
+        <!-- Added Dynamically -->
+    </div>
+    </div>
+
+    <!-- Loading socket.io library here from server file -->
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+
+    <script>
+        const socket=io.connect("http://localhost:3000");
+
+//Getting the DOM elements.
+const notificationPanel=document.getElementById('notification-panel');
+const chatList=document.getElementById('chat-list');
+const messageInput=document.getElementById('message-input');
+const sendMessage=document.getElementById('send-message');
+const connectedUsersContainer=document.getElementById('connected-users-container');
+
+//Getting javascript prompt for entering name.
+const username=prompt("Enter your name"); //  'Kovid'
+if(username){
+    const div=document.createElement('div');
+    div.id='status';
+    const innerDiv1=document.createElement('div');
+    innerDiv1.id="online-symbol";
+    const innerDiv2=document.createElement('div');
+    innerDiv2.innerText=`Welcome ${username}`;
+    innerDiv2.id='greeting-notification';
+    div.append(innerDiv1,innerDiv2);
+    notificationPanel.appendChild(div);
+
+    //who is typing indicator div
+    const typingDiv=document.createElement('div');
+    typingDiv.id='user-typing';
+    notificationPanel.appendChild(typingDiv);
+
+    //Emiting the username to server so that server can broadcast this name 
+    socket.emit('new_user',username);
+
+    //Adding this username to connected users container.
+    const div2=document.createElement('div');
+    div2.innerText=username;
+    div2.className='user';
+    connectedUsersContainer.appendChild(div2);
+
+    socket.emit("load_messages",username);
+}
+
+//loading all the previous messages 
+socket.on("load_all_messages",(messages)=>{
+    console.log(messages);  //array of all prev messages received
+    messages.forEach((message)=>{
+
+        const messageBox=document.createElement("div");
+        messageBox.id="message-box";
+        const nameTimeDiv=document.createElement('div');
+        nameTimeDiv.className='name-time-div';
+        const nameDiv=document.createElement('div');
+        nameDiv.innerText=message.username;
+        nameDiv.className='name-div';
+        const timeDiv=document.createElement('div');
+        timeDiv.innerText=new Date(message.timestamp).toLocaleTimeString();
+        timeDiv.className='time-div';
+        nameTimeDiv.append(nameDiv,timeDiv);
+        const messageDiv=document.createElement('div');
+        messageDiv.innerText=message.message;
+        messageDiv.className='message-div';
+        messageBox.append(nameTimeDiv,messageDiv);
+        chatList.appendChild(messageBox);
+
+    })
+})
+
+// adding event listener on send button
+sendMessage.addEventListener("click",()=>{
+    //read the message and send to server
+    const message=messageInput.value;
+    if(message){
+        const messageInfo={
+            username:username,
+            message:message,
+            timestamp:new Date(),
+        }
+        socket.emit("send_message",messageInfo);
+        //add the message in chat list container
+        const layer=document.createElement('div');
+        layer.id='layer1';
+        const messageBox=document.createElement("div");
+        messageBox.className="message-box";
+        const nameTimeDiv=document.createElement('div');
+        nameTimeDiv.className="name-time-div"
+        const nameDiv=document.createElement('div');
+        nameDiv.innerText=username;
+        nameDiv.className='name-div';
+        const timeDiv=document.createElement('div');
+        timeDiv.innerText=new Date().toLocaleTimeString();
+        timeDiv.className='time-div';
+        nameTimeDiv.append(nameDiv,timeDiv);
+        const messageDiv=document.createElement('div');
+        messageDiv.innerText=message;
+        messageDiv.className='message-div';
+        messageBox.append(nameTimeDiv,messageDiv);
+        layer.append(messageBox)
+        chatList.appendChild(layer);
+
+        //clearing the messageInput value
+        messageInput.value='';
+    }
+    socket.emit('notification_sound');
+})
+
+socket.on("broadcast_sound",()=>{
+    new Audio('./public/notification_ding.mp3').play();
+})
+
+//broadcast message listener
+socket.on("broadcast_message",(messageInfo)=>{
+    const messageBox=document.createElement("div");
+    messageBox.id="message-box";
+    const nameTimeDiv=document.createElement('div');
+    nameTimeDiv.className='name-time-div';
+    const nameDiv=document.createElement('div');
+    nameDiv.innerText=messageInfo.username;
+    nameDiv.className='name-div';
+    const timeDiv=document.createElement('div');
+    timeDiv.innerText=new Date(messageInfo.timestamp).toLocaleTimeString();
+    timeDiv.className='time-div';
+    nameTimeDiv.append(nameDiv,timeDiv);
+    const messageDiv=document.createElement('div');
+    messageDiv.innerText=messageInfo.message;
+    messageDiv.className='message-div';
+    messageBox.append(nameTimeDiv,messageDiv);
+    chatList.appendChild(messageBox);
+    messageInput.value='';
+});
+
+
+messageInput.addEventListener("keydown",()=>{
+    socket.emit("typing",username);
+})
+
+socket.on("broadcasted_typing",(name)=>{
+    const userTypingDiv=document.getElementById('user-typing');
+    userTypingDiv.innerText=`${name} is typing`;
+})
+
+messageInput.addEventListener("keyup",()=>{
+    socket.emit('stop_typing',username);
+})
+
+socket.on("broadcasted_stoptyping",(name)=>{
+    setTimeout(()=>{
+        document.getElementById('user-typing').innerText='';
+    },2000);
+})
+
+//Broadcasting connected usernames to all clients.
+socket.on('broadcasted_user',(userInfo)=>{
+    const usernameDiv=document.createElement('div');
+    usernameDiv.innerText=userInfo.username;
+    usernameDiv.className='user';
+    usernameDiv.id=userInfo.socketID;
+    connectedUsersContainer.appendChild(usernameDiv);
+})
+
+// Loading all earlier connected usernames to newly connected users
+socket.on("load_usernames",(info)=>{  
+    const{usernames,username,socketID}=info;
+    for(let u of usernames){
+        if(u.username==username && u.socketID==socketID){
+            continue;
+        }
+        const div=document.createElement('div');
+        div.innerText=u.username;
+        div.className='user';
+        div.id=u.socketID;
+        connectedUsersContainer.appendChild(div);
+    }
+})
+// Removing username from connected users container when someone disconnects
+socket.on('remove_user',(socketID)=>{
+    const data=document.getElementById(socketID);
+    data.remove();
+})
+        
+    </script> 
+</body>
+</html>
